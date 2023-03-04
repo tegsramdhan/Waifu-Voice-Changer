@@ -6,9 +6,16 @@ import pyaudio
 import whisper
 import requests
 import json
+from libretranslatepy import LibreTranslateAPI
+from urllib.parse import urlencode
+
+voicevox_url = "http://localhost:50021"
+
+#Get Translator
+lt = LibreTranslateAPI("https://translate.argosopentech.com/")
 
 #get model
-model = whisper.load_model("base")
+model = whisper.load_model("base.en", device= "cuda")
 
 # Define recording parameters
 CHUNK = 1024
@@ -33,20 +40,33 @@ stream = audio.open(format=FORMAT, channels=CHANNELS,
 
 frames = []
 
-def translate_text(translate):
-    url = "https://libretranslate.com/translate"
-    payload = {
-        "q": f"{translate}",
-        "source": "en",
-        "target": "ja",
-        "format": "text",
-        "api_key": ""
-    }
-    headers = {"Content-Type": "application/json"}
+def speak(text_to_speech):
+    speaker_id = '40' #22 ASMR , 3 Girl, 34 Cowok, 35 Nangis, 40 Laki Chad
+    params_encoded = urlencode(
+        {
+        'text' : text_to_speech,
+        'speaker' : speaker_id
+        }
+    )
 
-    response = requests.post(url, data=json.dumps(payload), headers=headers)
-    data = json.loads(response.text)
-    print(data)
+    r = requests.post(f'{voicevox_url}/audio_query?{params_encoded}')
+    voicevox_query = r.json()
+    voicevox_query['volumeScale'] = 3.0
+    voicevox_query['intonationScale'] = 1.0
+    voicevox_query['prePhonemeLength'] = 1.0
+    voicevox_query['postPhonemeLength'] = 1.0
+
+    params_encoded = urlencode(
+        {
+        'speaker' : speaker_id
+        }
+    )
+
+    r = requests.post(f'{voicevox_url}/synthesis?{params_encoded}', json=voicevox_query)
+
+    with open("Waifu.mp3", 'wb') as outfile:
+        outfile.write(r.content)
+
 
 # Start an infinite loop to detect key presses and releases
 while True:
@@ -83,4 +103,16 @@ while True:
 
             result = model.transcribe("output.wav")
             print(result["text"])
+
+            #print to jp
+            strJapanText = lt.translate(result["text"], "en", "ja")
+            print(strJapanText)
+
+            #Text to speech
+            speak(strJapanText)
+
+            break
+
+
+
     time.sleep(0.01)
