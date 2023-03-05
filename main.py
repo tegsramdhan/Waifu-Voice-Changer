@@ -8,6 +8,7 @@ import requests
 import json
 from libretranslatepy import LibreTranslateAPI
 from urllib.parse import urlencode
+from pygame import mixer
 
 voicevox_url = "http://localhost:50021"
 
@@ -33,15 +34,28 @@ key_held_down = False
 # Initialize PyAudio
 audio = pyaudio.PyAudio()
 
+
 # Open recording stream
 stream = audio.open(format=FORMAT, channels=CHANNELS,
                     rate=RATE, input=True,
-                    frames_per_buffer=CHUNK)
+                    frames_per_buffer=CHUNK, input_device_index=2)
 
 frames = []
 
+
+def output_speak(strWaifupath):
+    mixer.init(devicename = 'CABLE Input (VB-Audio Virtual Cable)') # Initialize it with the correct device
+    mixer.music.load(strWaifupath) # Load the mp3
+    mixer.music.play() # Play it
+
+    while mixer.music.get_busy():  # wait for music to finish playing
+        time.sleep(0.3)
+
+    mixer.quit()
+    
+
 def speak(text_to_speech):
-    speaker_id = '40' #22 ASMR , 3 Girl, 34 Cowok, 35 Nangis, 40 Laki Chad
+    speaker_id = '22' #22 ASMR , 3 Girl, 34 Cowok, 35 Nangis, 40 Laki Chad
     params_encoded = urlencode(
         {
         'text' : text_to_speech,
@@ -64,7 +78,7 @@ def speak(text_to_speech):
 
     r = requests.post(f'{voicevox_url}/synthesis?{params_encoded}', json=voicevox_query)
 
-    with open("Waifu.mp3", 'wb') as outfile:
+    with open("Waifu.wav", 'wb') as outfile:
         outfile.write(r.content)
 
 
@@ -109,9 +123,13 @@ while True:
             print(strJapanText)
 
             #Text to speech
+            print("Convert to Waifu...")
             speak(strJapanText)
 
-            break
+            #microphone output
+            print("Play to microphone...")
+            output_speak("Waifu.wav")
+            print("Done...")
 
 
 
