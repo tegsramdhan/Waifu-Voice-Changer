@@ -26,7 +26,7 @@ RATE = 44100
 WAVE_OUTPUT_FILENAME = "output.wav"
 
 # Set the key we want to detect
-key_to_detect = 'a'
+key_to_detect = 'F24'
 
 # Set a flag to keep track of whether the key is being held down
 key_held_down = False
@@ -52,10 +52,11 @@ def output_speak(strWaifupath):
         time.sleep(0.3)
 
     mixer.quit()
-    
+
+strCharacter_id = input("Enter character ID : ")
 
 def speak(text_to_speech):
-    speaker_id = '22' #22 ASMR , 3 Girl, 34 Cowok, 35 Nangis, 40 Laki Chad
+    speaker_id = strCharacter_id #22 ASMR , 3 Girl, 34 Cowok, 35 Nangis, 40 Laki Chad
     params_encoded = urlencode(
         {
         'text' : text_to_speech,
